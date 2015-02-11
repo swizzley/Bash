@@ -28,40 +28,43 @@ if id $USER|grep -q [0-9];then
 FNUM=$(lsof -u $USER |wc -l)
 PNUM=$(ps aux|grep ^$USER|grep -v grep|wc -l)
 
-LIMIT=1024
+LIMIT=4096
 
-SLIM=$(grep $USER /etc/security/limits.conf|grep soft|grep $TYPE|awk -F " " '{print $4}')
-HLIM=$(grep $USER /etc/security/limits.conf|grep hard|grep $TYPE|awk -F " " '{print $4}')
+PLIM=$(sudo -u $USER bash -c "echo $(ulimit -u -H)")
+FLIM=$(sudo -u $USER bash -c "echo $(ulimit -n -H)")
 
-if [ ! -z "$SLIM" ];then 
-        if [ "$SLIM" == "$HLIM" ]; then #echo "WTF! Why are hard n soft limits for $TYPE set the same?"
-                LIMIT=$SLIM
-        else
-                LIMIT=$HLIM
-        fi
+if [ "$TYPE" == "$PROC" ]; then
+        LIMIT=$PLIM
+else
+        LIMIT=$FLIM
 fi
+
 
 PCURRENT=$(echo $PNUM/$LIMIT |bc -l)
 FCURRENT=$(echo $FNUM/$LIMIT |bc -l)
 
-WARN=0.80
-CRIT=0.90
+WARN=0.90
+CRIT=0.95
 
 if [ "$TYPE" == "nproc" ]; then
-        if [[ ${PCURRENT%.*} -gt ${WARN%.*} ]];then
-                echo "WARNING $USER has $PNUM processes running."
-        elif [[ ${PCURRENT%.*} -gt ${CRIT%.*} ]];then
+        if [[ ${PCURRENT%.*} -gt ${CRIT%.*} ]];then
                 echo "CRITICAL $USER has $PNUM processes running!"
+                exit 1
+        elif [[ ${PCURRENT%.*} -gt ${WARN%.*} ]];then
+                echo "WARNING $USER has $PNUM processes running."
+                exit 1
         else 
                 echo "OK $USER has $PNUM processes running."
         fi
 fi      
 
 if [ "$TYPE" == "nofile" ]; then
-        if [[ ${FCURRENT%.*} -gt ${WARN%.*} ]];then
-                echo "WARNING $USER has $FNUM files open."
-        elif [[ ${PCURRENT%.*} -gt ${CRIT%.*} ]];then
+        if [[ ${PCURRENT%.*} -gt ${CRIT%.*} ]];then
                 echo "CRITICAL $USER has $FNUM files open!"
+                exit 1
+        elif [[ ${FCURRENT%.*} -gt ${WARN%.*} ]];then
+                echo "WARNING $USER has $FNUM files open."
+                exit 1
         else 
                 echo "OK $USER has $FNUM files open."
         fi
