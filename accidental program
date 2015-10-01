@@ -1,0 +1,75 @@
+sometimes it just comes together
+
+archangel:libvirt morgan$ vagrant plugin install libvirt nokogiri
+Installing the 'libvirt' plugin. This can take a few minutes...
+The plugin(s) can't be installed due to the version conflicts below.
+This means that the plugins depend on a library version that conflicts
+with other plugins or Vagrant itself, creating an impossible situation
+where Vagrant wouldn't be able to load the plugins.
+
+You can fix the issue by either removing a conflicting plugin or
+by contacting a plugin author to see if they can address the conflict.
+
+Vagrant could not find compatible versions for gem "ffi":
+  In Gemfile:
+    vagrant (= 1.7.4) ruby depends on
+      rb-kqueue (~> 0.2.0) ruby depends on
+        ffi (>= 0.5.0) ruby
+
+    vagrant (= 1.7.4) ruby depends on
+      rb-kqueue (~> 0.2.0) ruby depends on
+        ffi (>= 0.5.0) ruby
+
+    vagrant (= 1.7.4) ruby depends on
+      winrm (~> 1.3) ruby depends on
+        gssapi (~> 1.2) ruby depends on
+          ffi (>= 1.0.1) ruby
+
+    vagrant (= 1.7.4) ruby depends on
+      childprocess (~> 0.5.0) ruby depends on
+        ffi (>= 1.0.11, ~> 1.0) ruby
+
+    libvirt (>= 0) ruby depends on
+      ffi (~> 0.6.3) ruby
+#Here's where I copy & paste stdout      
+archangel:libvirt morgan$ vi shit
+archangel:libvirt morgan$ grep . shit 
+      rb-kqueue (~> 0.2.0) ruby depends on
+        ffi (>= 0.5.0) ruby
+    vagrant (= 1.7.4) ruby depends on
+      rb-kqueue (~> 0.2.0) ruby depends on
+        ffi (>= 0.5.0) ruby
+    vagrant (= 1.7.4) ruby depends on
+      winrm (~> 1.3) ruby depends on
+        gssapi (~> 1.2) ruby depends on
+          ffi (>= 1.0.1) ruby
+    vagrant (= 1.7.4) ruby depends on
+      childprocess (~> 0.5.0) ruby depends on
+        ffi (>= 1.0.11, ~> 1.0) ruby
+    libvirt (>= 0) ruby depends on
+      ffi (~> 0.6.3) ruby
+archangel:libvirt morgan$ grep . shit |awk '{print $1}'
+rb-kqueue
+ffi
+vagrant
+rb-kqueue
+ffi
+vagrant
+winrm
+gssapi
+ffi
+vagrant
+childprocess
+ffi
+libvirt
+ffi
+archangel:libvirt morgan$ grep . shit |awk '{print $1}'|sort -u
+childprocess
+ffi
+gssapi
+libvirt
+rb-kqueue
+vagrant
+winrm
+#This part started out nice, but I accidentally wrote it backwards using end & home shortcuts, hence the export
+archangel:libvirt morgan$ export INSTALL="vagrant plugin install $i"; for i in $(grep . shit |awk '{print $1}'|sort -u);do $INSTALL $i; done
